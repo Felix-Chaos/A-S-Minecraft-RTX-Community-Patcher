@@ -4,7 +4,7 @@
 
 ## ⚠️ Important Community Notice
 
-This is a **community project** based on the original *Actions & Stuff* resource pack by Oreville Studios.  
+This is a **community project** based on the original [*Actions & Stuff*](https://orevillestudios.com/content/actions-&-stuff/resource-pack) resource pack by [Oreville Studios](https://orevillestudios.com/).
 **This patcher is currently an early-stage tool** — it has NOT been fully tested or polished for end users yet.  
 We have uploaded the original creator’s files to support community development and plan to enable support for **A&S 1.6** soon.
 You can find Stable versions at the Releases Tab.
