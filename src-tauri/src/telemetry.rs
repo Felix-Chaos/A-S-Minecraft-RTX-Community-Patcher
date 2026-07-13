@@ -338,6 +338,19 @@ fn hash_payload_for_change_detection(payload: &serde_json::Value) -> String {
         obj.remove("install_id");
         obj.remove("patcher_version");
     }
+
+    // Stabilize ordering for fields derived from filesystem enumeration.
+    if let Some(arr) = clone
+        .pointer_mut("/rtx/betterrtx/stubs")
+        .and_then(|v| v.as_array_mut())
+    {
+        arr.sort_by(|a, b| {
+            let ak = a.get("pack_uuid").and_then(|v| v.as_str()).unwrap_or("");
+            let bk = b.get("pack_uuid").and_then(|v| v.as_str()).unwrap_or("");
+            ak.cmp(bk)
+        });
+    }
+
     let mut hasher = Sha256::new();
     hasher.update(clone.to_string().as_bytes());
     hasher.finalize().iter().map(|b| format!("{:02x}", b)).collect()
