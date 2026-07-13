@@ -254,6 +254,9 @@ fn collect_betterrtx_fingerprint() -> serde_json::Value {
             }
         }
     }
+    // read_dir order is filesystem-dependent; sort so the fingerprint (and its
+    // change-detection hash) doesn't churn when nothing actually changed.
+    stubs.sort_by(|a, b| a["pack_uuid"].as_str().cmp(&b["pack_uuid"].as_str()));
     serde_json::json!({
         "installed": !stubs.is_empty(),
         "pack_count": stubs.len(),
@@ -323,7 +326,9 @@ fn collect_active_subpacks() -> Vec<String> {
 
 /// Hashes the parts of a collected payload that reflect actual system state,
 /// excluding fields that always differ between calls (the collection
-/// timestamp) or that don't describe the machine itself (the install id).
+/// timestamp), that don't describe the machine itself (the install id), or
+/// that change independently of the machine (the patcher version — bumping
+/// the app version shouldn't by itself trigger a re-upload).
 /// Used to decide whether anything worth re-uploading has changed.
 fn hash_payload_for_change_detection(payload: &serde_json::Value) -> String {
     use sha2::{Digest, Sha256};
@@ -331,6 +336,7 @@ fn hash_payload_for_change_detection(payload: &serde_json::Value) -> String {
     if let Some(obj) = clone.as_object_mut() {
         obj.remove("collected_at");
         obj.remove("install_id");
+        obj.remove("patcher_version");
     }
     let mut hasher = Sha256::new();
     hasher.update(clone.to_string().as_bytes());
