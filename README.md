@@ -108,9 +108,15 @@ Your A&S Copy ──→ xdelta3 + .vcdiff patch ──→ A&S Enhanced for RTX (
 
 ## 📖 Wiki / Full Feature Guide
 
-The **Patcher** tab covers the basics (Marketplace, Zip/McPack, and Custom Patch modes), but the app also ships a **Cleaner**, **RTX Settings** editor, a full **Utilities** menu (deterministic ZIP packer, archive extractor, the *Create Patch* tool used to build new `.vcdiff` patches, and a standalone *Extract Brarchives* tool for A&S releases that ship assets bundled in that custom container format), a **Bug Reporter**, and a **Release Builder** for maintainers.
+The **Patcher** tab covers the basics, but the app ships a lot more than just Marketplace auto-detect. The **[📖 Wiki](./docs/WIKI.md)** covers:
 
-For what each of those actually does, when you'd reach for **Extract Brarchives**, and how to build a **Custom Patch** from source, see the full **[📖 Wiki](./docs/WIKI.md)**.
+- 🔍 **How patching actually works** (the `encrypted.vcdiff` / `decrypted.vcdiff` split, and why both exist)
+- 🚀 **All three Patch Modes**: Marketplace (default), Zip / McPack, and Custom Patch, plus what **Advanced Mode** unlocks
+- 📦 **Extract Brarchives**: what the `__brarchive` container format actually is, and the real answer for when you need it (short version: almost never as a regular end user)
+- 🔧 **Building Custom Patches**: the full **Create Patch (VCDIFF)** workflow patch developers use to generate new `.vcdiff` releases, including every input folder and toggle
+- 🧰 **A tool-by-tool reference**: Cleaner, RTX Settings/`options.txt` editor, the Deterministic ZIP Packer, the Extract ZIP/MCPack utility, the Bug Reporter, and the maintainer-only Release Builder
+- ⚙️ **A full App Settings table** explaining what every toggle actually defaults to and controls
+- 🩹 **Troubleshooting** for the most common "something looks broken" and "patch didn't apply" cases
 
 ---
 

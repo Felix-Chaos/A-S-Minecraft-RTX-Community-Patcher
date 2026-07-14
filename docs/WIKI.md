@@ -5,7 +5,7 @@
 </td>
 <td>
 
-## 📖 A&S RTX Patcher — Wiki / Full Feature Guide
+## 📖 A&S RTX Patcher Wiki / Full Feature Guide
 
 *Every tab, every toggle, and when to actually use them*
 
@@ -17,7 +17,7 @@
 </tr>
 </table>
 
-This guide covers the current Tauri-based patcher (the app that ships as `Actions and Stuff RTX Patcher.exe`). If you just want the quick install steps, the [main README](../README.md) is enough — come here when you want to know what a specific button, toggle, or tab actually does.
+This guide covers the current Tauri-based patcher (the app that ships as `Actions and Stuff RTX Patcher.exe`). If you just want the quick install steps, the [main README](../README.md) is enough. Come here when you want to know what a specific button, toggle, or tab actually does.
 
 ---
 
@@ -28,14 +28,14 @@ This guide covers the current Tauri-based patcher (the app that ships as `Action
   - [Marketplace (default)](#-marketplace-default)
   - [Zip / McPack (Advanced Mode)](#-zip--mcpack-advanced-mode)
   - [Custom Patch (Advanced Mode)](#-custom-patch-advanced-mode)
-- [Extract Brarchives — what it is and when you need it](#-extract-brarchives--what-it-is-and-when-you-need-it)
+- [Extract Brarchives](#-extract-brarchives)
 - [Tools Reference](#-tools-reference)
   - [🧹 Cleaner](#-cleaner)
   - [🎛️ RTX Settings](#-rtx-settings)
   - [🛠️ Utilities](#-utilities)
     - [Deterministic ZIP Packer](#deterministic-zip-packer)
     - [Extract ZIP / MCPack](#extract-zip--mcpack)
-    - [Create Patch (VCDIFF)](#create-patch-vcdiff--custom-patches)
+    - [Create Patch (VCDIFF)](#create-patch-vcdiff)
     - [Extract Brarchives (standalone)](#extract-brarchives-standalone)
   - [💬 Support](#-support)
   - [📦 Release Builder (maintainers only)](#-release-builder-maintainers-only)
@@ -49,7 +49,7 @@ This guide covers the current Tauri-based patcher (the app that ships as `Action
 The patcher never redistributes any original Actions & Stuff asset. Instead it ships small binary diffs (`.vcdiff`, applied with [xdelta3](https://github.com/jmacd/xdelta)) that transform **your own legally-owned copy** into the RTX-enhanced version:
 
 ```
-Your A&S Copy ──→ xdelta3 + .vcdiff patch ──→ A&S Enhanced for RTX (.mcpack)
+Your A&S Copy → xdelta3 + .vcdiff patch → A&S Enhanced for RTX (.mcpack)
 ```
 
 Two `.vcdiff` files exist per patch version, because there are two possible starting points:
@@ -59,7 +59,7 @@ Two `.vcdiff` files exist per patch version, because there are two possible star
 | `encrypted.vcdiff` | Your raw, still-DRM-encrypted Marketplace cache | **Marketplace** mode |
 | `decrypted.vcdiff` | An already-decrypted/plain pack (a `.zip`/`.mcpack` you downloaded or extracted yourself) | **Zip / McPack** mode |
 
-Both patches reconstruct the exact same final pack — the tool just picks whichever one matches the format of the pack you're feeding it, so it never has to touch DRM-protected bytes it can't otherwise read.
+Both patches reconstruct the exact same final pack. The tool just picks whichever one matches the format of the pack you're feeding it, so it never has to touch DRM-protected bytes it can't otherwise read.
 
 ---
 
@@ -69,7 +69,7 @@ Pick a mode on the **Patcher** tab. The first is always available; the other two
 
 ### 🏪 Marketplace (default)
 
-Auto-detects your purchased Actions & Stuff pack directly from Minecraft's `premium_cache` (works for the Microsoft Store/UWP and GDK/Xbox app installs). This is the mode almost everyone should use — no manual file picking required.
+Auto-detects your purchased Actions & Stuff pack directly from Minecraft's `premium_cache` (works for the Microsoft Store/UWP and GDK/Xbox app installs). This is the mode almost everyone should use, no manual file picking required.
 
 1. Choose **Auto-Detect** or **Manual Select** for the target patch/pack version.
 2. Optionally leave **Delete older patched versions automatically** on to keep old installs from piling up.
@@ -81,27 +81,27 @@ For when you already have Actions & Stuff as a `.zip` or `.mcpack` file (e.g. do
 
 ### 🔧 Custom Patch (Advanced Mode)
 
-Lets you manually point at a specific **source** pack (folder or zip), **target** output path, and a specific `.vcdiff` **patch file** — bypassing the normal auto-detection entirely. Useful for testing a patch you (or a patch developer) just built with the [Create Patch tool](#create-patch-vcdiff--custom-patches), or for applying an older/specific patch version by hand.
+Lets you manually point at a specific **source** pack (folder or zip), **target** output path, and a specific `.vcdiff` **patch file**, bypassing the normal auto-detection entirely. Useful for testing a patch you (or a patch developer) just built with the [Create Patch tool](#create-patch-vcdiff), or for applying an older/specific patch version by hand.
 
 > [!TIP]
-> After any mode finishes, click **Install Pack** to copy the result straight into your Minecraft `resource_packs` folder — no manual extraction needed.
+> After any mode finishes, click **Install Pack** to copy the result straight into your Minecraft `resource_packs` folder, no manual extraction needed.
 
 ---
 
-## 📦 Extract Brarchives — what it is and when you need it
+## 📦 Extract Brarchives
 
-Some Actions & Stuff releases ship certain assets bundled inside a custom container format instead of as normal loose files: a `__brarchive` folder containing `*.brarchive` files, each of which is really several real files packed together with a small binary header.
+Some Actions & Stuff source material ships assets bundled inside a custom container format instead of as normal loose files: a `__brarchive` folder containing `*.brarchive` files, each of which is really several real files packed together with a small binary header.
 
-**When you need it:** if your source pack (Marketplace cache, `.zip`, or a folder you're using for [patch generation](#create-patch-vcdiff--custom-patches)) contains a `__brarchive` folder anywhere inside it. Without extracting them first, the patcher can't find the real files it needs to diff or patch — they're sitting inside the archive container, not at their expected path.
+**When you need it:** in practice, mainly when generating a new patch in the [Create Patch tool](#create-patch-vcdiff) with **Replace Unchanged** turned on. That option pulls substitute files straight from the raw, still-encrypted marketplace source, and if any of those live inside a `__brarchive` container, extraction has to run first or the tool won't find them at their expected path. **Replace Unchanged is off by default**, and should stay off unless verified in-game (see the warning under [Create Patch](#create-patch-vcdiff)), so for most patch-generation runs, and for virtually all regular end users applying an existing patch, you don't need to touch this toggle at all.
 
 **What it does:** recursively scans the target folder for `__brarchive` directories, unpacks every `.brarchive` file back into a normal file at the path it's named after (stripping the `.brarchive` suffix), then deletes the now-empty archive containers and any leftover `.brarchive` pointer files.
 
-**Where to turn it on:**
+**Where the toggle exists:**
 - **Patcher tab** → the "Extract Brarchives (Beta)" step runs automatically if **App Settings → Extract Brarchives automatically** is enabled.
 - **Create Patch tool** → its own "Extract Brarchives" toggle, applied to all three of your source/target folders before diffing.
-- **Utilities → Extract Brarchives** → a standalone version you can point at any folder directly, independent of the patching pipeline — handy if you just want to inspect what's inside a `__brarchive` folder without running a full patch.
+- **Utilities → Extract Brarchives** → a standalone version you can point at any folder directly, independent of the patching pipeline. Handy if you just want to inspect what's inside a `__brarchive` folder without running a full patch.
 
-If your pack doesn't have a `__brarchive` folder, leaving this off is harmless (it's a no-op) — but it's off by default because it's still marked **Beta**.
+If a folder doesn't have a `__brarchive` anywhere in it, running this is a harmless no-op, which is why it's still marked **Beta** and left off by default rather than something you need to actively avoid.
 
 ---
 
@@ -119,25 +119,25 @@ Reads and writes your Minecraft `options.txt` directly, so you can flip RTX-rele
 
 ### 🛠️ Utilities
 
-Standalone tools that don't run the full patch pipeline — useful for patch developers or troubleshooting.
+Standalone tools that don't run the full patch pipeline, useful for patch developers or troubleshooting.
 
 #### Deterministic ZIP Packer
 
-Compresses a folder into a `.zip`/`.mcpack` with fixed timestamps (Jan 1 1980) and no compression (stored). Two runs over identical input always produce a byte-identical archive — this determinism is what makes the xdelta diffs reproducible and small, so it's used internally everywhere the patcher creates a zip for diffing.
+Compresses a folder into a `.zip`/`.mcpack` with fixed timestamps (Jan 1 1980) and no compression (stored). Two runs over identical input always produce a byte-identical archive; this determinism is what makes the xdelta diffs reproducible and small, so it's used internally everywhere the patcher creates a zip for diffing.
 
 #### Extract ZIP / MCPack
 
-Extracts any `.zip` or `.mcpack` archive to a folder, automatically unwrapping a single redundant top-level folder if the archive has one (e.g. `MyPack-main/...` → just the pack contents).
+Extracts any `.zip` or `.mcpack` archive to a folder, automatically unwrapping a single redundant top-level folder if the archive has one (e.g. `MyPack-main/...` becomes just the pack contents).
 
-#### Create Patch (VCDIFF) — custom patches
+#### Create Patch (VCDIFF)
 
-This is how new patch versions actually get built. It's a maintainer/patch-developer tool, not something regular users need. It needs four inputs:
+This is how new patch versions actually get built, for custom/new patches. It's a maintainer/patch-developer tool, not something regular users need. It needs four inputs:
 
 | Input | What goes here |
 | :--- | :--- |
-| **1. Target Folder** | Your finished, modified "Actions & Stuff RTX" pack — the result you want end users to end up with |
+| **1. Target Folder** | Your finished, modified "Actions & Stuff RTX" pack, the result you want end users to end up with |
 | **2. Source Decrypted Folder** | A vanilla, already-decrypted baseline copy of the same Actions & Stuff version (no DRM) |
-| **3. Source Encrypted Folder** | The same vanilla version, but straight from `premium_cache` — still DRM-encrypted |
+| **3. Source Encrypted Folder** | The same vanilla version, but straight from `premium_cache`, still DRM-encrypted |
 | **Output Directory** | Where the finished `.vcdiff` files and `patch_config.json` get written |
 
 Plus **Pack Version** / **Patch Version** (used to name the output folder and populate `patch_config.json`), and three toggles:
@@ -145,18 +145,18 @@ Plus **Pack Version** / **Patch Version** (used to name the output folder and po
 | Toggle | Effect |
 | :--- | :--- |
 | **Inject Custom Manifest** | Writes the patcher's own `manifest.json` into both the decrypted baseline and the target folder before diffing, so the shipped pack always ends up with the correct custom pack identity |
-| **Extract Brarchives** | See [Extract Brarchives](#-extract-brarchives--what-it-is-and-when-you-need-it) above — runs it on all three input folders first |
-| **Replace Unchanged** | ⚠️ **Leave this off unless you've verified it in-game.** It substitutes any file that's byte-identical between the decrypted baseline and your target with the *raw DRM-encrypted* original, to shrink the diff. Files substituted this way ship as ciphertext with no guarantee Minecraft can still decrypt them once a custom manifest is in play — enabling it has previously produced patches where a bunch of assets silently failed to load. |
+| **Extract Brarchives** | See [Extract Brarchives](#-extract-brarchives) above, runs it on all three input folders first |
+| **Replace Unchanged** | ⚠️ **Off by default. Leave it off unless you've verified it in-game.** It substitutes any file that's byte-identical between the decrypted baseline and your target with the *raw DRM-encrypted* original, to shrink the diff. Files substituted this way ship as ciphertext with no guarantee Minecraft can still decrypt them once a custom manifest is in play; enabling it has previously produced patches where a bunch of assets silently failed to load. |
 
 Clicking **Create Patches** produces `encrypted.vcdiff`, `decrypted.vcdiff`, and a `patch_config.json` (pack/patch version + validation stats used by Marketplace auto-detection) in a new `Actions & Stuff for RTX <pack version> V<patch version>` folder under your chosen output directory.
 
 #### Extract Brarchives (standalone)
 
-Same brarchive extraction described [above](#-extract-brarchives--what-it-is-and-when-you-need-it), pointed at any folder you choose — independent of a patch run. Good for just inspecting/unpacking a `__brarchive` folder without doing anything else.
+Same brarchive extraction described [above](#-extract-brarchives), pointed at any folder you choose, independent of a patch run. Good for just inspecting/unpacking a `__brarchive` folder without doing anything else.
 
 ### 💬 Support
 
-Discord invite links (community + BetterRTX), and the **Bug Report** form. The bug reporter can optionally attach your application log, the pack you patched, a Minecraft content log (with usernames scrubbed from file paths), recent GPU driver events, and a hardware summary (GPU/CPU/RAM/BetterRTX preset) — all opt-in per checkbox, and all tied to a random install ID rather than anything personally identifying. See **App Settings → Privacy** for the underlying telemetry consent controls.
+Discord invite links (community + BetterRTX), and the **Bug Report** form. The bug reporter can optionally attach your application log, the pack you patched, a Minecraft content log (with usernames scrubbed from file paths), recent GPU driver events, and a hardware summary (GPU/CPU/RAM/BetterRTX preset), all opt-in per checkbox, and all tied to a random install ID rather than anything personally identifying. See **App Settings → Privacy** for the underlying telemetry consent controls.
 
 ### 📦 Release Builder (maintainers only)
 
@@ -171,7 +171,7 @@ Version bump + build automation for cutting a new patcher release: edit the app 
 | General | Opt-in to Beta Updates | Lets the in-app updater offer beta/alpha releases, not just stable |
 | Patcher Behaviors | Clean Old Patch Remnants | Runs the Cleaner scan automatically before every patch |
 | Patcher Behaviors | Extract Brarchives automatically | Runs brarchive extraction automatically during a normal patch run |
-| Patch Creator Defaults | Inject Custom Manifest / Extract Brarchives for Patch / Replace Unchanged JSONs | Default state of the matching toggles in the [Create Patch tool](#create-patch-vcdiff--custom-patches) |
+| Patch Creator Defaults | Inject Custom Manifest / Extract Brarchives for Patch / Replace Unchanged JSONs | Default state of the matching toggles in the [Create Patch tool](#create-patch-vcdiff) |
 | Bug Reporter Defaults | Include Application Log / Pack / Content Log / Driver Events / Hardware Info | Default state of the matching checkboxes on the bug report form |
 | Privacy | Telemetry consent, Delete My Data | Opt in/out of anonymous hardware pings, and erase your server-side data (rotates your local install ID) |
 
@@ -179,9 +179,9 @@ Version bump + build automation for cutting a new patcher release: edit the app 
 
 ## 🩹 Troubleshooting
 
-- **A texture/model/sound looks broken or purple after patching** — use the Bug Report form (Support tab) with the content log and hardware info included; this gives us the most actionable diagnostics.
-- **Nothing happens when I click Apply RTX Patch** — check the process log (Advanced Mode) for the actual error, and confirm you own a legitimate copy of Actions & Stuff in one of the supported formats.
-- **Just patched but Minecraft still shows the old pack** — make sure your resource pack load order matches the [README's setup section](../README.md), and run the Cleaner to remove stale duplicates.
+- **A texture/model/sound looks broken or purple after patching.** Use the Bug Report form (Support tab) with the content log and hardware info included; this gives us the most actionable diagnostics.
+- **Nothing happens when I click Apply RTX Patch.** Check the process log (Advanced Mode) for the actual error, and confirm you own a legitimate copy of Actions & Stuff in one of the supported formats.
+- **Just patched but Minecraft still shows the old pack.** Make sure your resource pack load order matches the [README's setup section](../README.md), and run the Cleaner to remove stale duplicates.
 - **Still stuck?** Ask in the [Discord](https://discord.gg/YrMMmN2kc7) or check the pinned [FAQ thread](https://discord.com/channels/691547840463241267/1360688874388455504/1376325634246049792).
 
 ---
