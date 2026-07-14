@@ -68,7 +68,7 @@
 
 [![⬇ Beta](https://img.shields.io/badge/⬇_Beta-f58220?style=for-the-badge&logo=github&logoColor=white)](https://github.com/Felix-Chaos/Actions-and-Stuff-RTX-Patcher/releases/tag/V2.0.4b)
 
-[![📖 Tutorial](https://img.shields.io/badge/📖_Tutorial_&_Docs-0969da?style=for-the-badge)](./docs/TUTORIAL.md)
+[![📖 Wiki](https://img.shields.io/badge/📖_Wiki_&_Full_Guide-0969da?style=for-the-badge)](./docs/WIKI.md)
 
 </td>
 </tr>
@@ -103,6 +103,14 @@ Your A&S Copy ──→ xdelta3 + .vcdiff patch ──→ A&S Enhanced for RTX (
   <img src="./docs/showcase/showcase_image_2.jpg" width="32%" />
   <img src="./docs/showcase/showcase_image_4.png" width="32%" />
 </p>
+
+---
+
+## 📖 Wiki / Full Feature Guide
+
+The **Patcher** tab covers the basics (Marketplace, Zip/McPack, and Custom Patch modes), but the app also ships a **Cleaner**, **RTX Settings** editor, a full **Utilities** menu (deterministic ZIP packer, archive extractor, the *Create Patch* tool used to build new `.vcdiff` patches, and a standalone *Extract Brarchives* tool for A&S releases that ship assets bundled in that custom container format), a **Bug Reporter**, and a **Release Builder** for maintainers.
+
+For what each of those actually does, when you'd reach for **Extract Brarchives**, and how to build a **Custom Patch** from source, see the full **[📖 Wiki](./docs/WIKI.md)**.
 
 ---
 
