@@ -500,6 +500,9 @@ pub struct EntryDescriptor {
 /// (e.g. "..\\..\\evil.dll" or an absolute/drive-rooted path) before they're
 /// joined onto a base path and written to disk.
 pub fn is_safe_relative_entry(name: &str) -> bool {
+    if name.is_empty() {
+        return false;
+    }
     let path = Path::new(name);
     if path.is_absolute() {
         return false;
