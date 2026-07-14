@@ -1738,7 +1738,7 @@ pub async fn submit_bug_report(
     let api_url = std::option_env!("PATCHER_API_URL").unwrap_or("http://localhost:3000");
     let api_key = std::option_env!("PATCHER_API_KEY").unwrap_or("");
     // DSGVO: identify reports by the random install id, never by MachineGuid.
-    let install_id = crate::telemetry::load_state()
+    let install_id = crate::telemetry::load_state(&app)
         .map(|s| s.install_id)
         .unwrap_or_else(|_| "unknown".to_string());
 
@@ -1832,22 +1832,31 @@ pub async fn prepare_patch_target(
     copy_dir_all(rtx_path, tgt_path).map_err(|e| format!("Failed to copy RTX dir: {}", e))?;
     
     let mut unchanged_count = 0;
-    
+
     if replace_unchanged {
         emit_log(&app, "genpatch-logs", "Comparing and restoring unchanged encrypted assets...", "info");
+        emit_log(
+            &app,
+            "genpatch-logs",
+            "WARNING: substituted files stay raw DRM-encrypted. Minecraft can only decrypt them \
+             if the pack's contents.json/manifest UUID chain is left completely intact — this is \
+             NOT guaranteed once a custom manifest is injected. Verify in-game before shipping a \
+             patch built with this option.",
+            "warning",
+        );
         for entry in walkdir::WalkDir::new(dec_path).into_iter().filter_map(|e| e.ok()) {
             if entry.file_type().is_file() {
                 let relative_path = entry.path().strip_prefix(dec_path).unwrap();
                 let rtx_file = rtx_path.join(relative_path);
-                
+
                 if rtx_file.exists() {
                     let dec_content = std::fs::read(entry.path()).unwrap_or_default();
                     let rtx_content = std::fs::read(&rtx_file).unwrap_or_default();
-                    
+
                     if dec_content == rtx_content {
                         let enc_file = enc_path.join(relative_path);
                         let tgt_file = tgt_path.join(relative_path);
-                        
+
                         if enc_file.exists() {
                             if let Some(p) = tgt_file.parent() {
                                 let _ = std::fs::create_dir_all(p);
@@ -1860,12 +1869,49 @@ pub async fn prepare_patch_target(
             }
         }
         emit_log(&app, "genpatch-logs", &format!("Restored {} unchanged encrypted assets.", unchanged_count), "info");
+
+        // The substituted files above are still DRM ciphertext, so the
+        // decryption metadata that maps each file to its content key has to
+        // travel with them — without it Minecraft has no way to decrypt them
+        // and those assets simply fail to load. This was previously never
+        // copied at all (dec_path, the decrypted baseline, typically doesn't
+        // contain these DRM files, so the main comparison loop above never
+        // even considered them).
+        if unchanged_count > 0 {
+            for meta_file in ["contents.json", "signatures.json"] {
+                let src = enc_path.join(meta_file);
+                if src.exists() {
+                    let dst = tgt_path.join(meta_file);
+                    match std::fs::copy(&src, &dst) {
+                        Ok(_) => emit_log(
+                            &app,
+                            "genpatch-logs",
+                            &format!("  [Carried over] -> {} (required to decrypt substituted assets)", meta_file),
+                            "info",
+                        ),
+                        Err(e) => emit_log(
+                            &app,
+                            "genpatch-logs",
+                            &format!("  Failed to copy {}: {}", meta_file, e),
+                            "warning",
+                        ),
+                    }
+                } else {
+                    emit_log(
+                        &app,
+                        "genpatch-logs",
+                        &format!("  Missing {} in encrypted source — substituted assets will NOT be decryptable.", meta_file),
+                        "warning",
+                    );
+                }
+            }
+        }
     } else {
         emit_log(&app, "genpatch-logs", "Skipping unchanged file replacement...", "info");
     }
-    
+
     emit_log(&app, "genpatch-logs", &format!("Replaced {} unchanged files with encrypted versions.", unchanged_count), "success");
-    
+
     Ok(())
 }
 
@@ -1910,9 +1956,8 @@ pub fn save_patch_versions(_app: tauri::AppHandle, pack_version: String, patch_v
 
 
 #[tauri::command]
-pub fn load_settings(_app: tauri::AppHandle) -> Result<String, String> {
-    let project_root = std::env::current_dir().map_err(|e| e.to_string())?;
-    let settings_path = project_root.join("settings.json");
+pub fn load_settings(app: tauri::AppHandle) -> Result<String, String> {
+    let settings_path = user_data_dir(&app)?.join("settings.json");
     if settings_path.exists() {
         std::fs::read_to_string(settings_path).map_err(|e| e.to_string())
     } else {
@@ -1921,8 +1966,7 @@ pub fn load_settings(_app: tauri::AppHandle) -> Result<String, String> {
 }
 
 #[tauri::command]
-pub fn save_settings(_app: tauri::AppHandle, settings: String) -> Result<(), String> {
-    let project_root = std::env::current_dir().map_err(|e| e.to_string())?;
-    let settings_path = project_root.join("settings.json");
+pub fn save_settings(app: tauri::AppHandle, settings: String) -> Result<(), String> {
+    let settings_path = user_data_dir(&app)?.join("settings.json");
     std::fs::write(settings_path, settings).map_err(|e| e.to_string())
 }
